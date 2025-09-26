@@ -24,7 +24,7 @@ guess_font = pygame.font.SysFont("monospace", 24)
 lost_font = pygame.font.SysFont('arial', 45)
 word = ''
 buttons = []
-guessed = []
+guessed = set()
 hangmanPics = [pygame.image.load('hangman0.png'), pygame.image.load('hangman1.png'), pygame.image.load('hangman2.png'), pygame.image.load('hangman3.png'), pygame.image.load('hangman4.png'), pygame.image.load('hangman5.png'), pygame.image.load('hangman6.png')]
 
 limbs = 0
@@ -72,18 +72,16 @@ def hang(guess):
         return False
 
 
-def spacedOut(word, guessed=[]):
+def spacedOut(word, guessed):
     spacedWord = ''
     guessedLetters = guessed
-    for x in range(len(word)):
-        if word[x] != ' ':
-            spacedWord += '_ '
-            for i in range(len(guessedLetters)):
-                if word[x].upper() == guessedLetters[i]:
-                    spacedWord = spacedWord[:-2]
-                    spacedWord += word[x].upper() + ' '
-        elif word[x] == ' ':
+    for ch in word:
+        if ch ==' ':
             spacedWord += ' '
+        elif ch.upper() in guessed:
+            spacedWord += ch.upper() + ' '
+        else:
+            spacedWord += '_ '
     return spacedWord
             
 
@@ -118,8 +116,10 @@ def end(winner=False):
     again = True
     while again:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:               
                 pygame.quit()
+                #add quit para não dar erro ao encerrar o programa
+                quit()
             if event.type == pygame.KEYDOWN:
                 again = False
     reset()
@@ -134,7 +134,7 @@ def reset():
         buttons[i][4] = True
 
     limbs = 0
-    guessed = []
+    guessed = set()
     word = randomWord()
 
 #MAINLINE
@@ -168,8 +168,8 @@ while inPlay:
         if event.type == pygame.MOUSEBUTTONDOWN:
             clickPos = pygame.mouse.get_pos()
             letter = buttonHit(clickPos[0], clickPos[1])
-            if letter != None:
-                guessed.append(chr(letter))
+            if letter != None and chr(letter) not in guessed:
+                guessed.add(chr(letter))
                 buttons[letter - 65][4] = False
                 if hang(chr(letter)):
                     if limbs != 5:
@@ -180,7 +180,7 @@ while inPlay:
                     print(spacedOut(word, guessed))
                     if spacedOut(word, guessed).count('_') == 0:
                         end(True)
-
+                        
 pygame.quit()
 
 # always quit pygame when done!
